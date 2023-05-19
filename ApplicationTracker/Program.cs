@@ -1,6 +1,6 @@
 ﻿string workingFolder = ApplicationTracker.JSONController.ProgramFolder;
-string openFile = ApplicationTracker.JSONController.OpenApps;
-string closedFile = ApplicationTracker.JSONController.ClosedApps;
+string openFile = ApplicationTracker.JSONController.OpenFile;
+string closedFile = ApplicationTracker.JSONController.ClosedFile;
 
 if (!Directory.Exists(workingFolder)) Directory.CreateDirectory(workingFolder);
 if (!File.Exists(openFile)) File.Create(openFile);

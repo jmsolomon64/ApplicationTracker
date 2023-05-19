@@ -5,34 +5,39 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
+
+
 namespace ApplicationTracker
 {
+    enum Status {Open, Closed}
+
     public static class JSONController
     {
         //---Important strings---//
         public static string ProgramFolder = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        public static string OpenApps = $"{ProgramFolder}\\Open.json";
-        public static string ClosedApps = $"{ProgramFolder}\\Closed.json";
+        public static string OpenFile = $"{ProgramFolder}\\Open.json";
+        public static string ClosedFile = $"{ProgramFolder}\\Closed.json";
 
         //---Specialized tasks---//
         //--Create--
         internal static void CreateApplication(ApplicationItem app)
         {
-            AllApplications apps = ReadJson(OpenApps);
+            AllApplications apps = ReadJson(OpenFile);
             apps.Applications.Add(app);
-            OverwriteFile(OpenApps, apps);
+            OverwriteFile(OpenFile, apps);
         }
 
         //--Read--
-        internal static AllApplications ReadAllApplications(string filePath)
+        internal static AllApplications ReadAllApplications(Status stat)
         {
-            return ReadJson(filePath);
+            if(stat == Status.Open) return ReadJson(OpenFile);
+            else return ReadJson(ClosedFile);
         }
 
         internal static ApplicationItem ReadApplication(int id, string filePath)
         {
             AllApplications apps = ReadJson(filePath);
-            return FindApplication(id, apps);
+            return apps.Applications.FirstOrDefault(x => x.ID == id);
         }
 
         //--Update--
@@ -54,11 +59,21 @@ namespace ApplicationTracker
         //--Migrate closed apps from Open.json to Closed.json--
         internal static void MigrateApplications()
         {
-            AllApplications openApps = ReadJson(OpenApps);
-            AllApplications closedApps = ReadJson(ClosedApps);
+            AllApplications openApps = ReadJson(OpenFile);
+            AllApplications closedApps = ReadJson(ClosedFile);
 
-            //loop through openApps and move closed ones to close 
-            //overwrite
+            for(int i = 0; i < openApps.Applications.Count - 1;i++)
+            {
+                ApplicationItem app = openApps.Applications[i];
+                if(!app.Open)
+                {
+                    openApps.Applications.Remove(app);
+                    closedApps.Applications.Add(app);
+                }
+            } 
+            
+            OverwriteFile(OpenFile, openApps);
+            OverwriteFile(ClosedFile, closedApps);
         }
 
         //---Multi purpose methods---//
@@ -73,11 +88,6 @@ namespace ApplicationTracker
             UpdateIDs(apps);
             string content = JsonConvert.SerializeObject(apps);
             File.WriteAllText(filePath, content);
-        }
-
-        private static ApplicationItem FindApplication(int id, AllApplications apps)
-        {
-            return apps.Applications.FirstOrDefault(x => x.ID == id);
         }
 
         private static void UpdateIDs(AllApplications apps)
