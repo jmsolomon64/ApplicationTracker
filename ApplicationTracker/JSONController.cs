@@ -14,15 +14,16 @@ namespace ApplicationTracker
     public static class JSONController
     {
         //---Important strings---//
-        public static string ProgramFolder = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        public static string OpenFile = $"{ProgramFolder}\\Open.json";
-        public static string ClosedFile = $"{ProgramFolder}\\Closed.json";
+        public static string ProgramFolder = "assets";
+        public static string OpenFile = Path.Combine(ProgramFolder, "Open.json");
+        public static string ClosedFile = Path.Combine(ProgramFolder, "Closed.json");
 
         //---Specialized tasks---//
         //--Create--
         internal static void CreateApplication(ApplicationItem app)
         {
             AllApplications apps = ReadJson(OpenFile);
+            if(apps.Applications == null) apps.Applications = new List<ApplicationItem>();
             apps.Applications.Add(app);
             OverwriteFile(OpenFile, apps);
         }
@@ -80,6 +81,7 @@ namespace ApplicationTracker
         private static AllApplications ReadJson(string filePath)
         {
             string content = File.ReadAllText(filePath);
+
             return JsonConvert.DeserializeObject<AllApplications>(content);
         }
 
@@ -99,6 +101,8 @@ namespace ApplicationTracker
                 id ++;
             }
         }
+
+        
 
     }
 }
